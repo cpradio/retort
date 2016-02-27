@@ -38,14 +38,34 @@ function initializePlugin(api)
 
     var html = '<div class="post-retorts">';
 
-    post.retorts.forEach(function (item, index, enumerable){
-      html += '<div class="post-retort">';
-      html += `<img src="${Discourse.Emoji.urlFor(item.emoji)}" class="emoji" alt=":${item.emoji}:">`;
-      html += `<span class="post-retort-tooltip">${item.username}</span>`;
-      html += '</div>';
-    });
+    var sortedRetorts = post.retorts.sortBy(['emoji']);
+    var priorRetort = '';
+    for (var i = 0; i < sortedRetorts.length; i++) {
+      var item = sortedRetorts[i];
+      var isFirstRetort = priorRetort === '';
+      var isDifferentRetort = priorRetort !== item.emoji;
 
+      if (isFirstRetort)
+        html += '<div class="post-retort">';
+
+      if (isDifferentRetort && !isFirstRetort) {
+        html = html.substring(0, html.length - 2);
+        html += '</span></div>';
+        html += '<div class="post-retort">';
+      }
+
+      if (isFirstRetort || isDifferentRetort)
+        html += `<img src="${Discourse.Emoji.urlFor(item.emoji)}" class="emoji" alt=":${item.emoji}:"><span class="post-retort-tooltip">`;
+
+      html += `${item.username}, `;
+
+      priorRetort = item.emoji;
+    }
+
+    html = html.substring(0, html.length - 2);
+    html += '</span></div>';
     html += '</div>';
+
     return dec.rawHtml(html);
   })
 
